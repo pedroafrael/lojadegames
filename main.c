@@ -1,74 +1,54 @@
 #include <stdio.h>
-#include <string.h>
-#include "login.h"
-#include "game.h"
-#include "utils.h"
+#include <stdlib.h>
+#include "lista.h"
+#include "ordenacao.h"
+// inclua seus headers login.h, game.h...
 
 int main() {
-    if (!login()) {
-        return 0;
-    }
+    Produto *lista = NULL;
+    int opc, id, encontrou;
+    char nome[100];
+    float preco;
 
-    printf("\\n--- Bem-vindo à Loja de Games do Pedro! ---\\n");
-
-    int opcao;
     do {
-        printf("\\nMenu:\\n");
-        printf("1 - Cadastrar Game\\n");
-        printf("2 - Listar Games\\n");
-        printf("3 - Editar Game\\n");
-        printf("4 - Excluir Game\\n");
-        printf("5 - Buscar Game por Codigo\\n");
-        printf("6 - Listar Games em Promocao\\n");
-        printf("7 - Listar Games por Genero\\n");
-        printf("8 - Ordenar Games por Preco\\n");
-        printf("9 - Sair\\n");
-        printf("Escolha uma opcao: ");
-        scanf("%d", &opcao);
-        limparBuffer();
-
-        switch (opcao) {
+        printf("\n=== LOJA DE GAMES ===\n1 Cadastrar produto\n2 Listar produtos\n3 Ordenar por ID e buscar\n0 Sair\nOpção: ");
+        scanf("%d", &opc);
+        switch (opc) {
             case 1:
-                cadastrarGame();
+                printf("ID: "); scanf("%d", &id);
+                printf("Nome: "); getchar(); fgets(nome, 100, stdin);
+                nome[strcspn(nome, "\n")] = '\0';
+                printf("Preço: "); scanf("%f", &preco);
+                lista = insere_produto(lista, id, nome, preco);
                 break;
             case 2:
-                listarGames();
+                imprime_lista(lista);
                 break;
-            case 3:
-                editarGame();
-                break;
-            case 4:
-                excluirGame();
-                break;
-            case 5: {
-                int codigo;
-                printf("Digite o codigo do game: ");
-                scanf("%d", &codigo);
-                limparBuffer();
-                buscarGame(codigo);
-                break;
-            }
-            case 6:
-                listarGamesPromocao();
-                break;
-            case 7: {
-                char genero[50];
-                printf("Digite o genero: ");
-                fgets(genero, sizeof(genero), stdin);
-                genero[strcspn(genero, "\\n")] = 0;
-                listarGamesGenero(genero);
+            case 3: {
+                int n = tamanho_lista(lista);
+                if (n <= 0) {
+                    printf("Nenhum produto cadastrado.\n");
+                    break;
+                }
+                Produto **vet = lista_para_vetor(lista, n);
+                mergesort(vet, 0, n - 1);
+                printf("Informe o ID a buscar: "); scanf("%d", &id);
+                encontrou = busca_binaria(vet, n, id);
+                if (encontrou >= 0) {
+                    Produto *p = vet[encontrou];
+                    printf("Produto encontrado!\nID: %d | Nome: %s | Preço: R$%.2f\n", p->id, p->nome, p->preco);
+                } else printf("Produto com ID %d não encontrado.\n", id);
+                free(vet);
                 break;
             }
-            case 8:
-                ordenarGamesPreco();
-                break;
-            case 9:
-                printf("Saindo...\\n");
+            case 0:
+                libera_lista(lista);
+                printf("Saindo...Volte sempre!\n");
                 break;
             default:
-                printf("Opcao invalida! Tente novamente.\\n");
+                printf("Opção inválida.\n");
         }
-    } while (opcao != 9);
+    } while (opc != 0);
 
     return 0;
 }
